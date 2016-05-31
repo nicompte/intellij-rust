@@ -265,12 +265,14 @@ private class Resolver {
             seekInjectedItems(mod)
         }
 
-        protected fun seek(element: RustDeclaringElement) {
+        protected fun seek(element: RustNamedElement) {
             check(matched == null)
-            element.boundElements.find { match(it) }?.let { found(it) }
+            if (match(element)) {
+                found(element)
+            }
         }
 
-        protected fun seek(declaringElements: Collection<RustDeclaringElement>) {
+        protected fun seek(declaringElements: Collection<RustNamedElement>) {
             for (element in declaringElements) {
                 seek(element)
 
@@ -302,6 +304,11 @@ private class Resolver {
         protected fun match(elem: RustNamedElement): Boolean = elem.name == name
 
         protected fun seekUseDeclarations(o: RustItemsOwner) {
+            for (externCrate in o.externCrateDeclarations) {
+                seek(externCrate.boundElements)
+                if (matched != null) return
+            }
+
             for (useDecl in o.useDeclarations) {
                 if (useDecl.isStarImport) {
                     // Recursively step into `use foo::*`
@@ -311,7 +318,10 @@ private class Resolver {
                         mod.accept(this)
                     }
                 } else {
-                    seek(useDecl)
+                    for (element in useDecl.boundElements) {
+                        seek(element)
+                        if (matched != null) return
+                    }
                 }
                 if (matched != null) return
             }
@@ -347,7 +357,7 @@ private class Resolver {
 
         private val context: RustCompositeElement = ref
 
-        override fun visitForExpr             (o: RustForExpr)            = seek(o.scopedForDecl)
+        override fun visitForExpr             (o: RustForExpr)            = visitResolveScope(o)
         override fun visitLambdaExpr          (o: RustLambdaExpr)         = visitResolveScope(o)
         override fun visitTraitMethodMember   (o: RustTraitMethodMember)  = visitResolveScope(o)
         override fun visitImplMethodMember    (o: RustImplMethodMember)   = visitResolveScope(o)
@@ -357,13 +367,13 @@ private class Resolver {
 
         override fun visitScopedLetExpr(o: RustScopedLetExpr) {
             if (!PsiTreeUtil.isAncestor(o.scopedLetDecl, context, true)) {
-                seek(o.scopedLetDecl)
+                seek(o.declarations)
             }
         }
 
         override fun visitBlock(o: RustBlock) {
             val letDeclarations = o.letDeclarationsVisibleAt(context).flatMap { it.boundElements.asSequence() }
-            val candidates = letDeclarations + o.itemList
+            val candidates = letDeclarations + o.namedItems
 
             candidates.find { match(it) }?.let { found(it) }
             if (matched != null) return

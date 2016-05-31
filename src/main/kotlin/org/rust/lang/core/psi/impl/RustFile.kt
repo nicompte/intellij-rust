@@ -49,8 +49,8 @@ class RustFile(
     override val canonicalNameInFile: RustQualifiedName?
         get() = cratePath?.let { RustFileModuleId(it) }
 
-    override val declarations: Collection<RustDeclaringElement>
-        get() = itemList
+    override val declarations: Collection<RustNamedElement>
+        get() = namedItems
 
     override val innerAttrList: List<RustInnerAttr>
         get() = PsiTreeUtil.getChildrenOfTypeAsList(this, RustInnerAttr::class.java)

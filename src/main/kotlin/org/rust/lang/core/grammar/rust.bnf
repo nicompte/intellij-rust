@@ -212,8 +212,7 @@
                                     "org.rust.lang.core.psi.RustNamedElement" ]
     mixin       ("pat_binding") = "org.rust.lang.core.psi.impl.mixin.RustPatBindingImplMixin"
 
-    implements  ("type_param") = [ "org.rust.lang.core.psi.RustDeclaringElement"
-                                   "org.rust.lang.core.psi.RustNamedElement" ]
+    implements  ("type_param") = [ "org.rust.lang.core.psi.RustNamedElement" ]
     mixin       ("type_param") = "org.rust.lang.core.psi.impl.mixin.RustTypeParamImplMixin"
 
     //
@@ -301,8 +300,8 @@ vis ::= PUB
 private attrs_and_vis ::= outer_attr* vis?
 
 fake item ::= attrs_and_vis {
-  implements  = [ "org.rust.lang.core.psi.RustDeclaringElement"
-                  "org.rust.lang.core.psi.RustNamedElement"
+  implements  = [
+
                   "org.rust.lang.core.psi.RustVisibilityOwner"
                   "org.rust.lang.core.psi.RustOuterAttributeOwner" ]
   mixin       = "org.rust.lang.core.psi.impl.mixin.RustItemImplMixin"
@@ -486,6 +485,7 @@ private view_item ::= use_item
 use_item ::= attrs_and_vis USE use_path ';' {
   pin = "USE"
   hooks = [ leftBinder = "DOC_COMMENT_BINDER" ]
+  implements = [ "org.rust.lang.core.psi.RustDeclaringElement" ]
 }
 
 private use_path ::=
@@ -505,6 +505,7 @@ alias ::= AS IDENTIFIER
 
 extern_crate_item ::= attrs_and_vis EXTERN CRATE IDENTIFIER alias? ';' {
   hooks = [ leftBinder = "DOC_COMMENT_BINDER" ]
+  implements = [ "org.rust.lang.core.psi.RustDeclaringElement" ]
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
