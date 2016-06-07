@@ -1,9 +1,6 @@
 package org.rust.lang.core.type
 
-import org.rust.lang.core.psi.RustImplItemElement
-import org.rust.lang.core.psi.RustImplMethodMemberElement
-import org.rust.lang.core.psi.RustMod
-import org.rust.lang.core.psi.RustStructItemElement
+import org.rust.lang.core.psi.*
 import org.rust.lang.core.psi.impl.mixin.isStatic
 import org.rust.lang.core.psi.util.parentOfType
 import org.rust.lang.core.type.util.resolvedType
@@ -20,8 +17,7 @@ class RustStructType(val struct: RustStructItemElement) : RustType {
      */
     val inheritedImpls: Collection<RustImplItemElement> by lazy {
         struct.parentOfType<RustMod>()
-            ?.itemList.orEmpty()
-                .filterIsInstance<RustImplItemElement>()
+            ?.impls.orEmpty()
                 .filter { it.traitRef == null && (it.type?.resolvedType == this) }
     }
 

@@ -156,15 +156,13 @@ private fun RustItemsOwner.itemDeclarations(context: RustResolveScope.Context): 
     sequenceOf (
         // XXX: this must come before itemList to resolve `Box` from prelude. We need to handle cfg attributes to
         // fix this properly
-        modDecls.asSequence().mapNotNull {
+        items<RustModDeclItemElement>().asSequence().mapNotNull {
             ScopeEntryImpl.lazy(it.name) { it.reference?.resolve() }
         },
 
-        itemList.filter {
-            !(it is RustExternCrateItemElement || it is RustUseItemElement || it is RustModDeclItemElement)
-        }.scopeEntries,
+        itemDefinitions.scopeEntries,
 
-        externalCrates.asSequence().mapNotNull { externCrate ->
+        items<RustExternCrateItemElement>().asSequence().mapNotNull { externCrate ->
             ScopeEntryImpl.lazy(externCrate.alias?.name ?: externCrate.name) { externCrate.reference?.resolve() }
         },
 
@@ -172,7 +170,7 @@ private fun RustItemsOwner.itemDeclarations(context: RustResolveScope.Context): 
     ).flatten()
 
 private fun RustItemsOwner.importedDeclarations(context: RustResolveScope.Context): Sequence<RustResolveScope.Entry> {
-    val (wildCardImports, usualImports) = useDeclarations.partition { it.isStarImport }
+    val (wildCardImports, usualImports) = items<RustUseItemElement>().partition { it.isStarImport }
     return (usualImports + wildCardImports).asSequence().flatMap { it.importedEntries(context) }
 }
 
